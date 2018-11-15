@@ -7,11 +7,12 @@ Trabalho de computação paralela
 Aluno: Paulo Renato
 Professor: ACMO
 */
-# define VET_SIZE 10
+# define VET_SIZE 100000
 int main(int argc, char *argv[]){
-    int i, nproc, pid, v[VET_SIZE];
+    int i, j, nproc, pid, v[VET_SIZE];
     double tempoInicial;
     double tempoFinal;
+    FILE *outFile;
 
     MPI_Status status;
 
@@ -21,8 +22,9 @@ int main(int argc, char *argv[]){
     //iniciando o vetor
     if(pid == 0){
         for(i = 0; i<VET_SIZE; i++){
-            v[i] = i+1;
+            v[i] = 1;
         }
+        outFile = fopen("somaLogOut.txt", "a");
         tempoInicial = MPI_Wtime();
     }
     MPI_Bcast(v, VET_SIZE, MPI_INT, 0, MPI_COMM_WORLD );//mandando o vetor pros outros processos
@@ -36,25 +38,37 @@ int main(int argc, char *argv[]){
     my_last = my_last > VET_SIZE ? VET_SIZE : my_last;
     //printf("Processo: %d\nMy First: %d\nMy Last: %d\n\n", pid, my_first, my_last);
 
-    int minhaSoma = 0, somaTotal, somaRecebida;
+    int minhaSoma = 0, somaRecebida, somaTotal;
 
     for(i = my_first; i<my_last; i++){
         minhaSoma+=v[i];
     }
     //printf("Soma do processo %d: %d\n\n", pid, minhaSoma);
 
-    if(pid != 0){
-        MPI_Send(&minhaSoma, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
-    }else{
-        somaTotal = minhaSoma;
-        for(i = 1; i<nproc; i++){
-            MPI_Recv(&somaRecebida, 1, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, &status);
-            somaTotal += somaRecebida;
-        }
-        tempoFinal = MPI_Wtime();
-        printf("\n\nSoma Total: %d\nTempo em milisegundos: %f", somaTotal, (tempoFinal-tempoInicial)*1000);
-    }
+    int profundidade = ceil(log2(nproc));
+    int fator, envia;
 
+    fator = 1;
+    for(i = 1; i<=profundidade;i++){
+        envia = fator*2;
+        for(j = 0; j<nproc;j+=fator){
+            if(j!=pid) continue;
+            if(j%envia != 0){
+                MPI_Send(&minhaSoma, 1, MPI_INT, j-fator, 1, MPI_COMM_WORLD);
+            }else if(j+fator < nproc){
+                MPI_Recv(&somaRecebida, 1, MPI_INT, j+fator, 1, MPI_COMM_WORLD, &status);
+                minhaSoma+=somaRecebida;
+                //printf("%d recebeu de %d Soma: %d\n", j, j+fator, minhaSoma);
+            }
+        }
+        fator = envia;
+    }
+    if(pid == 0){
+        tempoFinal = MPI_Wtime();
+        somaTotal = minhaSoma;
+        fprintf(outFile, "\nSoma Total: %d   Tempo em milisegundos: %f    Processos: %d\n", somaTotal, (tempoFinal-tempoInicial)*1000, nproc);
+        fclose(outFile);
+    }
     MPI_Finalize();
 
     return 0;
