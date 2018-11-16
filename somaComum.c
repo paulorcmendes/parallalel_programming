@@ -7,11 +7,12 @@ Trabalho de computação paralela
 Aluno: Paulo Renato
 Professor: ACMO
 */
-# define VET_SIZE 10
+# define VET_SIZE 100000
 int main(int argc, char *argv[]){
     int i, nproc, pid, v[VET_SIZE];
     double tempoInicial;
     double tempoFinal;
+    FILE *outFile;
 
     MPI_Status status;
 
@@ -21,8 +22,9 @@ int main(int argc, char *argv[]){
     //iniciando o vetor
     if(pid == 0){
         for(i = 0; i<VET_SIZE; i++){
-            v[i] = i+1;
+            v[i] = 1;
         }
+        outFile = fopen("somaComum.txt", "a");
         tempoInicial = MPI_Wtime();
     }
     MPI_Bcast(v, VET_SIZE, MPI_INT, 0, MPI_COMM_WORLD );//mandando o vetor pros outros processos
@@ -52,7 +54,9 @@ int main(int argc, char *argv[]){
             somaTotal += somaRecebida;
         }
         tempoFinal = MPI_Wtime();
-        printf("\n\nSoma Total: %d\nTempo em milisegundos: %f", somaTotal, (tempoFinal-tempoInicial)*1000);
+        //printf("\n\nSoma Total: %d\nTempo em milisegundos: %f", somaTotal, (tempoFinal-tempoInicial)*1000);
+        fprintf(outFile, "%f\n", (tempoFinal-tempoInicial)*1000);
+        fclose(outFile);
     }
 
     MPI_Finalize();

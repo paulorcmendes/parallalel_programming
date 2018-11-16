@@ -24,7 +24,7 @@ int main(int argc, char *argv[]){
         for(i = 0; i<VET_SIZE; i++){
             v[i] = 1;
         }
-        outFile = fopen("somaLogOut.txt", "a");
+        outFile = fopen("somaLog.txt", "a");
         tempoInicial = MPI_Wtime();
     }
     MPI_Bcast(v, VET_SIZE, MPI_INT, 0, MPI_COMM_WORLD );//mandando o vetor pros outros processos
@@ -66,7 +66,8 @@ int main(int argc, char *argv[]){
     if(pid == 0){
         tempoFinal = MPI_Wtime();
         somaTotal = minhaSoma;
-        fprintf(outFile, "\nSoma Total: %d   Tempo em milisegundos: %f    Processos: %d\n", somaTotal, (tempoFinal-tempoInicial)*1000, nproc);
+        //fprintf(outFile, "\nSoma Total: %d   Tempo em milisegundos: %f    Processos: %d\n", somaTotal, (tempoFinal-tempoInicial)*1000, nproc);
+        fprintf(outFile, "%f\n", (tempoFinal-tempoInicial)*1000); // tempo em milisegundos
         fclose(outFile);
     }
     MPI_Finalize();
