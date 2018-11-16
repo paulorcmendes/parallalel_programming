@@ -25,9 +25,11 @@ int main(int argc, char *argv[]){
             v[i] = 1;
         }
         outFile = fopen("somaComum.txt", "a");
-        tempoInicial = MPI_Wtime();
     }
     MPI_Bcast(v, VET_SIZE, MPI_INT, 0, MPI_COMM_WORLD );//mandando o vetor pros outros processos
+    if(pid == 0){
+        tempoInicial = MPI_Wtime();
+    }
 
 
     int my_first, my_last, qtd;

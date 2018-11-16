@@ -7,12 +7,12 @@ int main(){
     char comando[100];
     FILE *outFile;
 
-    for(i = 1; i <= 10; i++){
+    for(i = 1; i <= 4; i++){
         outFile = fopen("somaComum.txt", "a");
         fprintf(outFile, "\n############ %d PROCESSOS ############\n", i);
         fclose(outFile);
         sprintf(comando, "mpiexec -n %d somaComum.exe", i);
-        for(j = 0; j<10; j++){
+        for(j = 0; j<5; j++){
             system(comando);
         }
     }
